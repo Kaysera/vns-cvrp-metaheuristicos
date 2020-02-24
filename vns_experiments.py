@@ -1,6 +1,8 @@
 from vns_cvrp import general_VNS_small, general_VNS_big, general_VNS_mid
 from random import seed
 from statistics import mean, median
+from datetime import datetime
+from sys import argv
 
 
 def run_experiment(function, path, k_max, capacity, samples):
@@ -26,23 +28,29 @@ def run_experiment(function, path, k_max, capacity, samples):
             Numero de veces que se va a ejecutar el algoritmo
     '''
     results = []
+    folder = './instances'
+    print(f'Filename: {path}, VNS: {function.__name__}, timestamp: {datetime.now().strftime("%H:%M:%S")}')
     for i in range(0,samples):
         print(f'Experiment {i}')
         seed(i)
-        results.append(function(path, k_max, CAPACITY, verbose=0))
+        results.append(function(f'{folder}/{path}', k_max, CAPACITY, verbose=0))
 
     print(f'Mean: {mean(results)}, median: {median(results)}, best: {min(results)}')
-    with(open('results.csv', 'a+')) as file:
-        file.write(';'.join([function.__name__, path.split('/')[2], str(mean(results)), str(median(results)), str(min(results)), '\n']))
+    with(open(f'./results/{path.split(".")[0]}_results.csv', 'a+')) as file:
+        file.write(';'.join([function.__name__, path, str(mean(results)), str(median(results)), str(min(results)), '\n']))
 
 
 
 
 k_max = 50
-path = './instances/A-n32-k5.vrp'
 CAPACITY = 300
 samples = 30
+mypath = './instances'
+vns_variants = [general_VNS_small, general_VNS_mid, general_VNS_big]
 
-run_experiment(general_VNS_small, path, k_max, CAPACITY, samples)
-run_experiment(general_VNS_mid, path, k_max, CAPACITY, samples)
-run_experiment(general_VNS_big, path, k_max, CAPACITY, samples)
+if argv[1]:
+    file = argv[1].split('\\')[2]
+    for vns in vns_variants:
+        run_experiment(vns, file, k_max, CAPACITY, samples)
+else:
+    print('No arguments')

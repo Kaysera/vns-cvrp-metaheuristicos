@@ -423,11 +423,11 @@ def MC2(routes, coord_map, capacity):
     new_routes = deepcopy(routes)
     intra_movements = [intra_swap, intra_shift]
     inter_movements = [inter_swap, inter_shift]
-
+    attempts = 0
     for i in range(0,2):
         valid_route = False
-        while not valid_route:
-
+        while not valid_route and attempts < MAX_ATTEMPTS:
+            attempts += 1
             movement_type = randint(0,1)
             if movement_type == 0: # Intra_movement
                 movement = randint(0,len(intra_movements)-1)
