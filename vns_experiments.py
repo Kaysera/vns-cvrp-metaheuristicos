@@ -5,7 +5,7 @@ from datetime import datetime
 from sys import argv
 
 
-def run_experiment(function, path, k_max, capacity, samples):
+def run_experiment(function, path, k_max, max_length, samples):
     '''
     Funcion que ejecuta un tipo de VNS sobre un fichero cambiando la semilla
     un determinado numero de veces
@@ -21,8 +21,8 @@ def run_experiment(function, path, k_max, capacity, samples):
         k_max: int
             Numero maximo de cambios de vecindario que se pueden realizar
 
-        capacity: int
-            Capacidad maxima de los camiones
+        max_length: int
+            Distancia maxima que recorren los camiones
 
         samples: int
             Numero de veces que se va a ejecutar el algoritmo
@@ -33,7 +33,7 @@ def run_experiment(function, path, k_max, capacity, samples):
     for i in range(0,samples):
         print(f'Experiment {i}')
         seed(i)
-        results.append(function(f'{folder}/{path}', k_max, CAPACITY, verbose=0))
+        results.append(function(f'{folder}/{path}', k_max, max_length, verbose=0))
 
     print(f'Mean: {mean(results)}, median: {median(results)}, best: {min(results)}')
     with(open(f'./results/{path.split(".")[0]}_results.csv', 'a+')) as file:
@@ -43,7 +43,7 @@ def run_experiment(function, path, k_max, capacity, samples):
 
 
 k_max = 50
-CAPACITY = 300
+max_distance = 300
 samples = 30
 mypath = './instances'
 vns_variants = [general_VNS_small, general_VNS_mid, general_VNS_big]
@@ -51,6 +51,6 @@ vns_variants = [general_VNS_small, general_VNS_mid, general_VNS_big]
 if argv[1]:
     file = argv[1].split('\\')[2]
     for vns in vns_variants:
-        run_experiment(vns, file, k_max, CAPACITY, samples)
+        run_experiment(vns, file, k_max, max_distance, samples)
 else:
-    print('No arguments')
+    print('No arguments were given')

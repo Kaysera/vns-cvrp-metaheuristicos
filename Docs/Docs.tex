@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+
+\usepackage{enumerate}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{alltt}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{subcaption}
+%\usepackage{listings}
+%\usepackage{mathtools}
+%\usepackage{amsmath}
+%\usepackage{amssymb}
+%Gummi|065|=)
+
+%\parindent 3em 
+%\oddsidemargin 0.45in
+%\textwidth 5.75in
+%\parskip 0.05in
+%\topmargin 0in
+%ESTO ES COSA DEL LISTINGS
+	\usepackage{listingsutf8}
+%	\usepackage{inconsolata}
+	\usepackage{xcolor}
+	\definecolor{dkgreen}{rgb}{0,0.6,0}
+	\definecolor{greenv2}{rgb}{0,0.9,0}
+	\definecolor{gray}{rgb}{0.5,0.5,0.5}
+	\definecolor{mauve}{rgb}{0.58,0,0.82}
+	
+	\lstset{
+	  frame=l,  % Agregar el marco b -> bottom, t -> top, tb ambos
+	  aboveskip=3mm,
+	  belowskip=3mm,
+	  rulecolor=\color{greenv2},
+	  showstringspaces=false,
+	  columns=flexible,
+	  basicstyle={\small\ttfamily},
+	  numbers=left,
+	  numberstyle=\tiny\color{gray},
+	  numbersep=5pt,
+	  keywordstyle=\color{blue},
+	  commentstyle=\color{dkgreen},
+	  stringstyle=\color{mauve},
+	  breaklines=true,
+	  breakatwhitespace=true
+	  inputencoding=utf8
+	  extendedchars=true,
+	  literate={ñ}{{\~n}}1 {>}{$>$}1 {<}{$<$}1 {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {¿}{\textquestiondown}1 ,
+	  tabsize=3
+	}
+	\lstset{numbers=left, numberstyle={\scriptsize } , stepnumber=1, numbersep=8pt}
+
+%ESTO ES COSA DEL LISTINGS
+\title{\textbf{ASIGNATURA}}
+\author{Guillermo Tomás Fernández Martín}
+
+
+\begin{document}
+
+
+\begin{titlepage}
+
+\begin{center}
+\vspace*{-1in}
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=6cm]{uimp.jpeg}
+\includegraphics[width=6cm]{aepia.jpg}
+\end{center}
+\end{figure}
+\vspace*{1in}
+
+MÁSTER UNIVERSITARIO EN INVESTIGACIÓN EN INTELIGENCIA ARTIFICIAL\\
+\vspace*{0.15in}
+Resolución de problemas con metaheurísticos - Curso 2019/20\\
+\vspace*{0.15in}
+\vspace*{0.2in}
+\begin{Large}
+\textbf{Trabajo 2.10. Documentación del VNS.} \\
+\end{Large}
+\vspace*{0.3in}
+
+\rule{80mm}{0.1mm}\\
+\vspace*{0.1in}
+\vspace*{0.3in}
+\begin{large}
+Realizado por:\\ Guillermo Tomás Fernández Martín\\
+\textit{fernandezmartin@posgrado.uimp.es}
+
+\end{large}
+\end{center}
+\vspace*{1.5in}
+\begin{flushright}
+Albacete, 25/02/2020
+\end{flushright}
+
+\end{titlepage}
+
+
+\pagenumbering{roman}
+\setcounter{page}{0}
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+%De esta forma sale nombre de Tabla en vez de Cuadro
+\renewcommand\tablename{Tabla}
+
+\section{Introduction}
+
+Along this document, the VNS implemented to solve a variation of the CVRP problem will be explained. This document will cover the data structures, functions and design choices taken during the development of the algorithm. \\
+
+\section{Language choice}
+
+For the implementation of the algorithm, Python has been the language used. The choice has been motivated by several factors. On the one hand, it simplifies some of the mathematical operations to be made, given that they are already implemented in the core libraries. On the other hand, it simplifies the implementation of the methods, given a cleaner, simpler syntax compared to other languages such as Java. Finally, it allows for some functionalities, such as using functions as parameters; that allow a further abstraction in some parts of the code. It is noticeable, however, the downside of this choice. Given that Python is an interpreted language, the code will run far slower than in C or Java. For the scope of this subject, however, it has been decided that this factor is not important enough, so this language will be the final choice. \\
+
+\section{Data Structures}
+
+There are two general structures that will be used along most functions of the algorithm: \texttt{coord\_map} and \texttt{routes}. 
+
+\subsection{\texttt{coord\_map}}
+
+This structure is the one that contains the map of the place with the coordinates of the nodes. It is a dictionary, given that is one of the most efficient structures in Python for quick data access. The key of the dictionary is the index of the node, and the value is a second dictionary with both the $x$ and $y$ values. This is a very efficient way of accessing the values, as well as a self-explained structure for any later modification of the code. It is simpler to understand what \texttt{node['y']} means than \texttt{node[1]} when revisiting the code (if it were a tuple instead of a dictionary), and it is as efficient. In the same way, it is clearer to return the key of the node to know the order of the routes in the solution after shuffling and changing the order of the stops to generate some of the solutions. \\
+
+\subsection{\texttt{routes}}
+
+This structure will be the final objective of the algorithm. It is a list of dictionaries, where each dictionary contains the route of a determined truck. In this case, each route is a dictionary to allow for expandability. At the beginning of the essay, every truck was to have a different capacity, which would also be allocated in this structure. However, later on it was decided for all the trucks to share the same capacity to keep the problem simple. The structure was kept a dictionary to keep the code functional and expandable, given that the performance would not vary significantly from using simple lists. The dictionary, then, is composed by a truck and a list of stops that the truck will traverse. This list is considered to be ordered for the final solution, and it does not include the depot. This way, a route with the stops \texttt{[3,7,2]} will depart from the depot, go to the node \texttt{3}, then the node \texttt{7}, the node \texttt{2} and return to the depot. 
+
+\section{Functions}
+
+In this section, the different functions that make the code work will be explained. In this document, the particularities of the algorithm will not be explained, but rather the implementation decissions. \\
+
+\subsection{\texttt{distance}}
+
+Auxiliary function that computes the Euclidean distance. It takes advantage of the \texttt{math} library, using its functions to get the distance. \\
+
+\subsection{\texttt{route\_length}}
+
+Auxiliary function that computes the distance of a whole route. It computes the distance between all stops, plus the distance from the depot to the first node and from the last node to the depot (that are not specified in the route). If a route is empty, it returns $0$, so there is the possibility of eliminating trucks if it is beneficial for the solution. \\
+
+\subsection{\texttt{validate\_route}}
+
+Auxiliary function that checks the restriction of the maximum length a truck can traverse. This behaviour has been extracted to a function for clarity in the code. \\
+
+\subsection{\texttt{augerat\_parser}}
+
+Auxiliary function that takes a file in the \textbf{Augerat} format and extracts the information of the nodes to create the structure \texttt{coord\_map} \\
+
+\subsection{\texttt{routes\_score}}
+
+Auxiliary function that computes the score of a solution. Again, this has been extracted to a function for clarity and reusability in the code. \\
+
+\subsection{\texttt{intra\_swap}, \texttt{intra\_shift}, \texttt{inter\_swap} and \texttt{inter\_shift}}
+
+Functions that control the movement of the stops of the routes as defined in the algorithm. They take the route or routes and the indices of the elements, and they perform the movement, returning a new route. They have to be called explicitly with the indices, so that it can be used in both random movements and exhaustive movements (shake or VND). They generate a copy of the original structure, modify it and return it, so that if this element is discarded (for example, a low score) the original element is not modified. \\
+
+\subsection{\texttt{sequence\_exchange}}
+
+Function that exchanges a sequence of a determined length between two routes. It uses internally the \texttt{inter\_swap} movement as many times as the sequence length. It acts as a wrapper to change neighbourhoods in other parts of the algorithm. \\
+
+\subsection{\texttt{VND} and \texttt{VND\_movement}}
+
+These two functions control the local search section of the algorithm. The \texttt{VND} function keeps on calling the \texttt{VND\_movement} function for as long as there is an improvement in the new route this one returns. The \texttt{VND\_movement} function makes an exhaustive search of the movements available until it finds a route that improves or finishes. First, it tackles the movements that only involve a single route (\texttt{intra\_movements}), and then the ones that involve two routes (\texttt{inter\_movements}). However, the function shuffles the order of these group of movements, so that it adds a layer of uncertainty. \\
+
+Given that the \texttt{VND} is where the difference between the algorithms reside, both functions take a list of movements that can be performed. This list is composed by functions, so that it can be shuffled, iterated and accessed independently of the number of functions or actual function in the list (as long as it has the same parameters in the same place). This is also why \texttt{VND\_movement} is divided between \texttt{inter} and \texttt{intra} movements: as they act over a different number of routes and have a different parameter layout, they have to be separated. \\
+
+\subsection{\texttt{MC2}}
+
+Function that takes care of the \textit{Move Combination} neighbourhood for the \texttt{shake} function. This function takes care of choosing a random movement between the four available, choosing random, different, valid routes, executing the movement and returning it if it generates a valid route. This means that if the movement needs two routes they cannot be the same, or if it only needs one route this needs to have at least two elements. Also, takes care of removing the executed movement from the list, so that the same movement is not executed twice. 
+
+\subsection{\texttt{SE\_MOVEMENT}, \texttt{SE2} and \texttt{SE3}}
+
+This functions take care of the \textit{Sequence exchange} neighbourhoods for the \texttt{shake} function. \texttt{SE\_MOVEMENT} executes a sequence exchange movement of a determined length. It takes care of choosing two different routes that are eligible for this movement (if the route is only two movements long, it cannot execute a three stop sequence exchange, for example). Also, takes care of choosing a correct index (not choosing the last element of a route as the start of the sequence exchange). Finally, it also checks that the generated route is valid. Both \texttt{SE2} and \texttt{SE3} functions act as wrappers. They have the same parameters as \texttt{MC2}, so it is possible to abstract from this functions inserting them in a list, in the same way as with the movements. 
+
+\subsection{\texttt{shake}}
+
+This function takes a number $k$ of neighbourhood changes and picks $k$ random movements from \texttt{MC2}, \texttt{SE2} and \texttt{SE3}. These movements can be called once or twice, so that there are six different possible neighbourhood changes. As the validity of the new routes is checked in each individual movements, this function gets very simplified. \\
+
+\subsection{\texttt{build\_routes} and \texttt{build\_initial\_solution}}
+
+These functions take care of the greedy algorithm that builds the initial solution. The method \texttt{build\_initial\_solution} starts with a single truck and generates a solution. If it is not valid, it increases one truck and tries again. This generation is done by the \texttt{build\_routes} function. It generates a random order of all the nodes but the depot, and tries to add each stop to every route. Then it adds it to the shortest new route, this is, the route that is the shortest with this new stop. This generates an initial solution that has a random component, so that every iteration of the algorithm changes; but is not completely random, but oriented to get a good solution, which improves the chance of the VNS getting a better solution. \\
+
+\subsection{\texttt{general\_VNS}}
+
+This function executes the algorithm using all the functions already explained. It takes the path of the configuration file, the maximum $k$ for the neighbourhood change, the maximum capacity of the trucks and the lists of movements that can be performed. It can also change the verbose level for debugging purposes. It is a straight up implementation of the algorithm: while the neighbourhood change is not greater than the makimum, it shakes and improves the best solution. If the new solution improves the best so far, it resets the neighbourhood change, else it increments the number of times it will change. Finally, it returns the best score obtained, and depending on the verbose level also prints the routes obtained. \\
+
+
+\subsection{\texttt{general\_VNS\_small}, \texttt{general\_VNS\_mid} and \texttt{general\_VNS\_big}}
+
+Finally, these functions act as wrappers of the \texttt{general\_VNS} method with the different number of movements. These are the functions that will be exported and called to generate the results. \\
+
+
+\section{Execution and experiments}
+
+For the execution of the algorithm, a different file has been created. This new file imports the wrapper VNS functions to call them. It parses the filename passed via command line and calls 30 times the three variants of the VNS with different seeds. After executing the 30 iterations, it prints the mean, median and best execution and writes the result in a file. To perform a statistical analysis, there is a wrapper function that checks the folder where all the result files are written and merges them in a single file.\\
+
+To call the \texttt{A-n32-k5} experiment function, use: 
+\begin{verbatim}
+	python vns_experiments.py instances\A-n32-k5.vrp
+\end{verbatim}
+
+The function parses the backslash ($\backslash$) character as separator because it was programmed for a Windows environment originally. 
+
+\end{document}
+
+
+
+\newpage
+\begin{thebibliography}{99}
+
+
+\end{thebibliography}

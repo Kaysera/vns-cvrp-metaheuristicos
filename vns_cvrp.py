@@ -5,7 +5,6 @@ from copy import deepcopy
 
 MAX_ATTEMPTS = 50
 
-
 def distance(origin, dest):
     '''
     Funcion para calcular la distancia euclidea entre dos puntos
